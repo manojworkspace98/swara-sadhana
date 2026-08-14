@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router'
+import { useReminders } from './state/useReminders'
 
 /** Nav entries. Order follows the practice day: what to do now, what to
  *  learn next, the pieces, the takes you kept, how far you've come. */
@@ -15,6 +16,8 @@ const NAV = [
 /** The four hairlines at the foot of the rail are the tanpura's strings,
  *  tuned Pa–Sa–Sa–Ṣa. */
 export function AppLayout() {
+  useReminders()
+
   return (
     <div className="relative z-10 min-h-dvh md:grid md:grid-cols-[208px_1fr]">
       {/* Desktop rail */}

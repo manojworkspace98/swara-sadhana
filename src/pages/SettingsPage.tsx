@@ -7,6 +7,12 @@ import { storageEstimate } from '../state/db'
 import { DEVI_ARTWORKS } from '../content/art'
 import { GoalEditor } from '../components/GoalEditor'
 import { describeGoal, goalForProfile, type DailyGoal } from '../state/goals'
+import {
+  notificationPermission,
+  requestNotificationPermission,
+  type PermissionState,
+  type ReminderSettings,
+} from '../state/reminders'
 
 export function SettingsPage() {
   const { activeProfile, profiles, signOut, refreshProfiles, patchSettings, settings } =
@@ -96,6 +102,11 @@ export function SettingsPage() {
           <GoalEditor goal={goalForProfile(activeProfile)} onChange={changeGoal} />
         </section>
 
+        <ReminderSettingsCard
+          settings={settings.reminders}
+          onChange={(reminders) => void patchSettings({ reminders })}
+        />
+
         <section className="card p-6">
           <h2 className="mb-4 text-lg">Invocation</h2>
           <p className="mb-4 text-sm text-[var(--color-muted)]">
@@ -169,6 +180,122 @@ export function SettingsPage() {
       </div>
     </>
   )
+}
+
+/**
+ * Reminders, with their limits stated rather than buried.
+ *
+ * A reminder a singer believes in but which never arrives is worse than no
+ * reminder at all, so the card says exactly when it can and cannot fire before
+ * asking for the permission.
+ */
+function ReminderSettingsCard({
+  settings,
+  onChange,
+}: {
+  settings: ReminderSettings
+  onChange: (next: ReminderSettings) => void
+}) {
+  const [permission, setPermission] = useState<PermissionState>(notificationPermission())
+
+  async function enable() {
+    const result = await requestNotificationPermission()
+    setPermission(result)
+    if (result === 'granted') onChange({ ...settings, enabled: true })
+  }
+
+  return (
+    <section className="card p-6">
+      <h2 className="mb-2 text-lg">Reminders</h2>
+      <p className="mb-4 text-sm text-[var(--color-muted)]">
+        A nudge at your usual hour, and one in the evening if the day has not counted
+        yet.
+      </p>
+
+      {permission === 'unsupported' ? (
+        <p className="text-sm text-[var(--color-muted)]">
+          This browser does not support notifications.
+        </p>
+      ) : permission === 'denied' ? (
+        <p className="text-sm text-[var(--color-kumkum)]">
+          Notifications are blocked for this site. Allow them in your browser's site
+          settings, then come back.
+        </p>
+      ) : settings.enabled && permission === 'granted' ? (
+        <div className="flex flex-col gap-4">
+          <label className="flex items-center justify-between gap-4 text-sm">
+            <span>Remind me at</span>
+            <select
+              value={settings.hour ?? 'auto'}
+              onChange={(e) =>
+                onChange({
+                  ...settings,
+                  hour: e.target.value === 'auto' ? null : Number(e.target.value),
+                })
+              }
+              className="min-h-11 rounded-lg border border-[var(--color-line)] bg-[var(--color-ink-2)] px-3 py-2 text-sm"
+            >
+              <option value="auto">the hour I usually sing</option>
+              {Array.from({ length: 24 }, (_, h) => (
+                <option key={h} value={h}>
+                  {formatHour12(h)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex items-center justify-between gap-4 text-sm">
+            <span>
+              Evening nudge if the day has not counted
+              <span className="mt-0.5 block text-xs text-[var(--color-muted)]">
+                At {formatHour12(settings.streakGuardHour)}.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={settings.streakGuard}
+              onChange={(e) => onChange({ ...settings, streakGuard: e.target.checked })}
+              className="h-5 w-5 accent-[var(--color-brass)]"
+            />
+          </label>
+
+          <p className="border-t border-[var(--color-line)] pt-3 text-xs leading-relaxed text-[var(--color-muted)]">
+            These arrive while the app is open or sitting in a background tab. With no
+            server behind it, nothing can reach you once the browser is fully closed —
+            installing the app to your home screen and leaving it running is what makes
+            reminders dependable.
+          </p>
+
+          <button
+            onClick={() => onChange({ ...settings, enabled: false })}
+            className="min-h-11 self-start rounded-lg border border-[var(--color-line)] px-4 py-2 text-sm"
+          >
+            Turn reminders off
+          </button>
+        </div>
+      ) : (
+        <div>
+          <button
+            onClick={() => void enable()}
+            className="min-h-11 rounded-lg bg-[var(--color-brass)] px-4 py-2 text-sm font-medium text-[var(--color-ink)]"
+          >
+            Turn on reminders
+          </button>
+          <p className="mt-3 text-xs leading-relaxed text-[var(--color-muted)]">
+            Your browser will ask permission once. Reminders arrive while the app is open
+            or in a background tab; nothing is sent to any server, and nothing can reach
+            you once the browser is fully closed.
+          </p>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function formatHour12(hour: number): string {
+  if (hour === 0) return '12am'
+  if (hour === 12) return 'noon'
+  return hour < 12 ? `${hour}am` : `${hour - 12}pm`
 }
 
 function fmtMB(bytes: number): string {

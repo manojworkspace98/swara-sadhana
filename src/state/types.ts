@@ -1,5 +1,6 @@
 import type { Sthayi } from '../engine/types'
 import type { DailyGoal } from './goals'
+import type { ReminderSettings, ReminderState } from './reminders'
 
 export type LessonId = string
 /** Kalam — the three traditional speeds a varisai is sung at. */
@@ -135,6 +136,9 @@ export interface AppSettings {
   invocationShownOn: string | null
   /** Which devotional image the invocation and the page watermark use. */
   deviArtwork: 'shyamala' | 'saraswati'
+  reminders: ReminderSettings
+  /** Which reminders have already been raised, so each fires only once a day. */
+  reminderState: ReminderState
 }
 
 export interface PracticePlanItem {

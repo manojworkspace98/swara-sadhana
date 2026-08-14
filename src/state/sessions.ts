@@ -126,6 +126,73 @@ export function groupByWeek(
     .map(([label, minutes]) => ({ label, minutes }))
 }
 
+export interface DayHistoryRow {
+  day: string
+  minutes: number
+  exercises: number
+  cleanPasses: number
+  /** Session start times, for reading the hour practice tends to happen at. */
+  startedAt: number[]
+}
+
+/**
+ * Per-day totals across a window, in one pass.
+ *
+ * The single-day version walks every session the profile has ever recorded, so
+ * asking it for half a year of history would re-read the table once per day.
+ * The weekday and consistency views need the whole window at once, so they get
+ * a version that reads it once.
+ */
+export async function dailyHistory(
+  profileId: string,
+  fromDay: string,
+  toDay: string,
+): Promise<DayHistoryRow[]> {
+  const [sessions, rollups] = await Promise.all([
+    db.sessions.where('profileId').equals(profileId).toArray(),
+    voiceDailyRange(profileId, fromDay, toDay),
+  ])
+
+  const lessonsByDay = new Map<string, Set<string>>()
+  const cleanByDay = new Map<string, number>()
+  const startsByDay = new Map<string, number[]>()
+
+  for (const session of sessions) {
+    const day = dayKey(session.endedAt)
+    if (day < fromDay || day > toDay) continue
+
+    if (session.lessonId) {
+      const set = lessonsByDay.get(day) ?? new Set<string>()
+      set.add(session.lessonId)
+      lessonsByDay.set(day, set)
+    }
+    if ((session.pitchAccuracy ?? 0) >= 80) {
+      cleanByDay.set(day, (cleanByDay.get(day) ?? 0) + 1)
+    }
+    const starts = startsByDay.get(day) ?? []
+    starts.push(session.startedAt)
+    startsByDay.set(day, starts)
+  }
+
+  const minutesByDay = new Map(rollups.map((r) => [r.day, r.practiceSec / 60]))
+  const days = new Set([
+    ...minutesByDay.keys(),
+    ...lessonsByDay.keys(),
+    ...cleanByDay.keys(),
+    ...startsByDay.keys(),
+  ])
+
+  return [...days]
+    .sort((a, b) => a.localeCompare(b))
+    .map((day) => ({
+      day,
+      minutes: minutesByDay.get(day) ?? 0,
+      exercises: lessonsByDay.get(day)?.size ?? 0,
+      cleanPasses: cleanByDay.get(day) ?? 0,
+      startedAt: startsByDay.get(day) ?? [],
+    }))
+}
+
 export async function minutesToday(profileId: string, now = Date.now()): Promise<number> {
   const row = await db.voiceDaily.get(`${profileId}|${dayKey(now)}`)
   return (row?.practiceSec ?? 0) / 60

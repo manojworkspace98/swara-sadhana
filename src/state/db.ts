@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { DEFAULT_REMINDERS, EMPTY_REMINDER_STATE } from './reminders'
 import type {
   AppSettings,
   Profile,
@@ -49,6 +50,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   referenceVolume: 0.6,
   invocationShownOn: null,
   deviArtwork: 'shyamala',
+  reminders: DEFAULT_REMINDERS,
+  reminderState: EMPTY_REMINDER_STATE,
 }
 
 export async function getSettings(): Promise<AppSettings> {
