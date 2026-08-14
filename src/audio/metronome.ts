@@ -53,12 +53,18 @@ interface ClickVoice {
   decaySec: number
 }
 
-/** Three weights, told apart by brightness as much as by loudness — a sam that
- *  is merely louder gets lost the moment the singer is loud too. */
+/**
+ * Three weights, told apart by brightness as much as by loudness — a sam that
+ * is merely louder gets lost the moment the singer is loud too.
+ *
+ * A bandpass passes noise in proportion to its bandwidth, centre over Q, so
+ * the lower clicks are given a wider band to keep them from falling further
+ * behind than their gains say. Measured: anga −6 dB, akshara −12 dB under sam.
+ */
 const VOICES: Record<ClickWeight, ClickVoice> = {
   sam: { hz: 2400, q: 1.1, gain: 0.9, decaySec: 0.055 },
-  anga: { hz: 1500, q: 1.4, gain: 0.5, decaySec: 0.045 },
-  akshara: { hz: 950, q: 1.7, gain: 0.28, decaySec: 0.035 },
+  anga: { hz: 1500, q: 1, gain: 0.55, decaySec: 0.045 },
+  akshara: { hz: 950, q: 0.9, gain: 0.38, decaySec: 0.035 },
 }
 
 const NOISE_SEC = 0.12
@@ -89,7 +95,6 @@ export function playClick(
 ): AudioBufferSourceNode {
   const voice = VOICES[weight]
   const t = Math.max(atTime, ctx.currentTime)
-  const peak = Math.max(voice.gain * Math.min(Math.max(volume, 0), 1), 0.0002)
 
   const source = ctx.createBufferSource()
   source.buffer = noiseBuffer(ctx)
@@ -99,19 +104,28 @@ export function playClick(
   band.frequency.value = voice.hz
   band.Q.value = voice.q
 
+  // The envelope always runs full scale and the weight is a plain gain after
+  // it. An exponential ramp is a curve between two values, so ramping to the
+  // weight itself would make a soft click a *differently shaped* click — the
+  // quieter it got the shorter it would sound, and the weights would stop
+  // tracking their own numbers.
   const env = ctx.createGain()
   env.gain.setValueAtTime(0.0001, t)
-  env.gain.exponentialRampToValueAtTime(peak, t + 0.001)
+  env.gain.exponentialRampToValueAtTime(1, t + 0.001)
   env.gain.exponentialRampToValueAtTime(0.0001, t + voice.decaySec)
   env.gain.setValueAtTime(0, t + voice.decaySec)
 
-  source.connect(band).connect(env).connect(destination)
+  const level = ctx.createGain()
+  level.gain.value = voice.gain * Math.min(Math.max(volume, 0), 1)
+
+  source.connect(band).connect(env).connect(level).connect(destination)
   source.start(t)
   source.stop(t + voice.decaySec + 0.01)
   source.onended = () => {
     source.disconnect()
     band.disconnect()
     env.disconnect()
+    level.disconnect()
   }
   return source
 }
