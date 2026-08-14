@@ -25,7 +25,6 @@ import { TALAS } from '../talas'
  */
 
 const RAGA_ID = 'mayamalavagowla'
-const ADI = TALAS.adi
 
 const LETTERS: readonly SwaraLetter[] = ['S', 'R', 'G', 'M', 'P', 'D', 'N']
 
@@ -214,25 +213,24 @@ export const JANTA_PATTERNS: readonly string[] = [
   // 3 — doubled note then a step of two.
   "S S R G  R R G M  G G M P  M M P D  P P D N  D D N S'" +
     "  S' S' N D  N N D P  D D P M  P P M G  M M G R  G G R S",
-  // 4 — overlapping doubles.
-  "S S R R  R R G G  G G M M  M M P P  P P D D  D D N N  N N S' S'" +
-    "  S' S' N N  N N D D  D D P P  P P M M  M M G G  G G R R  R R S S",
+  // 4 — doubled fourths.
+  "S S M M  R R P P  G G D D  M M N N  P P S' S'" +
+    "  S' S' P P  N N M M  D D G G  P P R R  M M S S",
   // 5 — the double placed inside the cell rather than at its head.
   "S R R S  R G G R  G M M G  M P P M  P D D P  D N N D  N S' S' N" +
-    "  S' N N S'  N D D N  D P P D  P M M P  M G G M  G R R G  R S S R  S",
+    "  S' N N S'  N D D N  D P P D  P M M P  M G G M  G R R G  R S S",
   // 6 — doubled three-note cells.
   "S S R R G G  R R G G M M  G G M M P P  M M P P D D  P P D D N N  D D N N S' S'" +
     "  S' S' N N D D  N N D D P P  D D P P M M  P P M M G G  M M G G R R  G G R R S S",
-  // 7 — a double resolved onto the next swara.
-  "S S R  R R G  G G M  M M P  P P D  D D N  N N S'" +
-    "  S' S' N  N N D  D D P  P P M  M M G  G G R  R R S",
+  // 7 — a double resolved onto the swara above it.
+  "S S R  G G M  P P D  N N S'  S' S' N  D D P  M M G  R R S",
   // 8 — doubled thirds.
   "S S G G  R R M M  G G P P  M M D D  P P N N  D D S' S'" +
     "  S' S' D D  N N P P  D D M M  P P G G  M M R R  G G S S",
   // 9 — doubled, dipping into the mandra sthayi.
-  "S S N, N, D, D, P, P,  D, D, N, N,  S S R R G G M M  G G R R S S",
+  "S S N, N, D, D, P, P,  D, D, N, N,  S S R R G G M M  P P M M G G R R  S S",
   // 10 — doubled, reaching over the tara Sa.
-  "S S R R G G M M  P P D D N N  S' S' R' R' S' S' N N  D D P P M M G G  R R S S",
+  "S S R R G G M M  P P D D N N S' S'  R' R' G' G' R' R' S' S'  N N D D P P M M  G G R R S S",
 ]
 
 /**
@@ -246,7 +244,7 @@ export const DHATU_PATTERNS: readonly string[] = [
     "  S' N S' D  S' N S' P  S' N S' M  S' N S' G  S' N S' R  S' N S' S",
   // 2 — three up, one back.
   "S R G S  R G M R  G M P G  M P D M  P D N P  D N S' D" +
-    "  S' N D S'  N D P N  D P M D  P M G P  M G R M  G R S G  S",
+    "  S' N D S'  N D P N  D P M D  P M G P  M G R M  G R S",
   // 3 — a leap up then a step down.
   "S G R S  R M G R  G P M G  M D P M  P N D P  D S' N D" +
     "  S' N S' D  N D N P  D P D M  P M P G  M G M R  G R G S",
@@ -262,15 +260,15 @@ export const DHATU_PATTERNS: readonly string[] = [
 
 /** Melsthayi varisai — the same habits carried above the tara Sa. */
 export const MELSTHAYI_PATTERNS: readonly string[] = [
-  "S R G M P D N S'  R' S' N D P M G R  S",
-  "S R G M P D N S'  R' G' R' S' N D P M  G R S",
+  "S R G M P D N S'  R' S' N D P M G R  S R G M G R S",
+  "S R G M P D N S'  R' G' R' S' N D P M  G M G R S R S",
   "P D N S' R' G' R' S'  N D P M G R S",
   "S' R' G' M' P' M' G' R'  S' N D P M G R S",
 ]
 
 /** Keezhsthayi varisai — the descent below Sa, where beginners run out of voice. */
 export const KEEZHSTHAYI_PATTERNS: readonly string[] = [
-  "S N, D, P, D, N, S R  G R S",
+  "S N, D, P, D, N, S R  G R S R G R S",
   "S N, D, P, M, P, D, N,  S R G M G R S",
 ]
 
@@ -475,7 +473,7 @@ const JANTA_SUBTITLES: readonly string[] = [
   'The scale with every swara doubled. Give the second note its own attack.',
   'Each doubled note followed by its neighbour, rising and then falling.',
   'A double, then a step of two. The leap has to stay in tune after the repeat.',
-  'Overlapping doubles: the pair that ends one cell begins the next.',
+  'Doubled fourths. A wide leap taken twice, which leaves nowhere to hide a flat note.',
   'The double placed inside the cell rather than at its head.',
   'Doubled three-note cells, which stretches the breath.',
   'A double resolved onto the swara above it.',

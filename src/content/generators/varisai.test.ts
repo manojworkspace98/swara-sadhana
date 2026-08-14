@@ -292,6 +292,52 @@ describe('the generated curriculum', () => {
     }
   })
 
+  it('holds only the closing note, and never for a whole cycle', () => {
+    // Every exercise pattern is one swara to the akshara; the single exception
+    // is the karvai `fitToAvartanas` adds to close the cycle. A held note
+    // anywhere else means a pattern picked up a stray duration, and a karvai
+    // as long as the cycle means the pattern does not fit the tala at all.
+    for (const lesson of ALL_GENERATED_LESSONS) {
+      if (lesson.kind === 'voice-basic') continue
+      const tala = TALAS[lesson.talaId]
+      const els = allElements(lesson)
+      for (let i = 0; i < els.length - 1; i += 1) {
+        expect(els[i].duration, `${lesson.id} element ${i + 1}`).toBe(1)
+      }
+      const last = els[els.length - 1]
+      expect(last.duration, `${lesson.id} closing karvai`).toBeLessThan(tala.aksharaCount)
+    }
+  })
+
+  it('never repeats one swara more than a janta turn would', () => {
+    // Two attacks is a janta pair. A longer run is legitimate in exactly one
+    // place — the tara Sa where an ascent ending on it meets a descent
+    // beginning on it, which is how the janta varisai are actually sung. Three
+    // attacks on any other swara is an encoding slip, not an exercise.
+    for (const lesson of ALL_GENERATED_LESSONS) {
+      const els = allElements(lesson)
+      let run = 1
+      for (let i = 1; i < els.length; i += 1) {
+        const el = els[i]
+        const same = el.swara === els[i - 1].swara && el.octave === els[i - 1].octave
+        run = same ? run + 1 : 1
+        const atTheTurn = lesson.kind === 'janta' && el.swara === 'S' && el.octave === 1
+        expect(run, `${lesson.id} at element ${i + 1} (${el.swara})`).toBeLessThanOrEqual(
+          atTheTurn ? 4 : 2,
+        )
+      }
+    }
+  })
+
+  it('ends every exercise on Sa, which is where a cycle has to close', () => {
+    for (const lesson of ALL_GENERATED_LESSONS) {
+      if (lesson.notation.length === 0) continue
+      const els = allElements(lesson)
+      expect(els[els.length - 1].swara, lesson.id).toBe('S')
+      expect(els[els.length - 1].octave, lesson.id).toBe(0)
+    }
+  })
+
   it('is entirely in Mayamalavagowla and marked as generated', () => {
     for (const lesson of ALL_GENERATED_LESSONS) {
       expect(lesson.ragaId, lesson.id).toBe('mayamalavagowla')

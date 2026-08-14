@@ -5,7 +5,12 @@ let ctx: AudioContext | null = null
  * user gesture, so every caller has to be reachable from a click.
  */
 export function getAudioContext(): AudioContext {
-  if (!ctx) ctx = new AudioContext({ latencyHint: 'interactive' })
+  if (!ctx) {
+    ctx = new AudioContext({ latencyHint: 'interactive' })
+    if (import.meta.env.DEV) {
+      ;(window as unknown as { __audio?: AudioContext }).__audio = ctx
+    }
+  }
   return ctx
 }
 

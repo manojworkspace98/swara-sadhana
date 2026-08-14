@@ -91,9 +91,14 @@ export class SwaraVoice {
     }
 
     const gain = this.env.gain
-    // Held from wherever the envelope stands rather than reset to zero: a
-    // re-articulation inside a phrase should swell, not restart from silence.
-    holdAt(gain, t)
+    // A note already sounding is held wherever the envelope stands, so that a
+    // re-articulation inside a phrase swells rather than restarting from
+    // silence. A note starting from silence has to be anchored explicitly: a
+    // ramp with nothing before it on the timeline has no start point, and the
+    // browser runs it from the current moment instead of from `t` — a note
+    // scheduled half a second ahead would begin fading in immediately.
+    if (this.sounding) holdAt(gain, t)
+    else anchorAt(gain, 0, t)
     gain.linearRampToValueAtTime(PEAK, t + ATTACK_SEC)
     gain.linearRampToValueAtTime(PEAK * SUSTAIN, t + ATTACK_SEC + DECAY_SEC)
 
@@ -105,6 +110,10 @@ export class SwaraVoice {
     if (this.disposed) return
     const t = Math.max(atTime, this.ctx.currentTime)
     const gain = this.env.gain
+    if (!this.sounding) {
+      anchorAt(gain, 0, t)
+      return
+    }
     holdAt(gain, t)
     gain.linearRampToValueAtTime(0, t + RELEASE_SEC)
     this.sounding = false
@@ -144,6 +153,13 @@ export class SwaraVoice {
  * the parameter wherever the last completed ramp put it, which for an envelope
  * this short is within a few percent of the same thing.
  */
+/** Clear the timeline and pin a known value at `t`, so what follows has a
+ *  start point to ramp from. */
+function anchorAt(param: AudioParam, value: number, t: number): void {
+  param.cancelScheduledValues(t)
+  param.setValueAtTime(value, t)
+}
+
 function holdAt(param: AudioParam, t: number): void {
   if (typeof param.cancelAndHoldAtTime === 'function') {
     param.cancelAndHoldAtTime(t)

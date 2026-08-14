@@ -45,6 +45,14 @@ export type ClickWeight = 'sam' | 'anga' | 'akshara'
 const LOOKAHEAD_MS = 25
 const SCHEDULE_AHEAD_SEC = 0.1
 const START_GRACE_SEC = 0.12
+/**
+ * A background tab has its timers throttled to about one a second, far wider
+ * than the lookahead window, so the scheduler comes back to find several
+ * aksharas already due. Their audio is dropped rather than fired at once —
+ * clicks that have missed their moment are not a beat any more, they are a
+ * rattle. The events still go out, so a UI keeps its count.
+ */
+const LATE_LIMIT_SEC = 0.02
 
 interface ClickVoice {
   hz: number
@@ -116,7 +124,9 @@ export function playClick(
   env.gain.setValueAtTime(0, t + voice.decaySec)
 
   const level = ctx.createGain()
-  level.gain.value = voice.gain * Math.min(Math.max(volume, 0), 1)
+  // A NaN would reach the parameter and throw, taking the whole beat with it.
+  const safeVolume = Number.isFinite(volume) ? Math.min(Math.max(volume, 0), 1) : 1
+  level.gain.value = voice.gain * safeVolume
 
   source.connect(band).connect(env).connect(level).connect(destination)
   source.start(t)
@@ -230,10 +240,12 @@ export class Metronome {
         this.avartana += 1
       }
 
-      const weight: ClickWeight = isSam ? 'sam' : isAngaStart ? 'anga' : 'akshara'
-      const source = playClick(this.ctx, this.destination, atTime, weight, this.volume)
-      this.live.add(source)
-      source.addEventListener('ended', () => this.live.delete(source))
+      if (atTime >= this.ctx.currentTime - LATE_LIMIT_SEC) {
+        const weight: ClickWeight = isSam ? 'sam' : isAngaStart ? 'anga' : 'akshara'
+        const source = playClick(this.ctx, this.destination, atTime, weight, this.volume)
+        this.live.add(source)
+        source.addEventListener('ended', () => this.live.delete(source))
+      }
 
       opts.onAkshara({ aksharaIndex, avartana, isSam, isAngaStart, atTime })
     }

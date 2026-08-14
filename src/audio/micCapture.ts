@@ -48,6 +48,11 @@ export class MicPitchSource implements PitchSource {
     return this.node !== null
   }
 
+  /** The live capture, so a recorder can write the same audio being analysed. */
+  get mediaStream(): MediaStream | null {
+    return this.stream
+  }
+
   async start(saHz: number): Promise<void> {
     if (this.node) return
     this.setSa(saHz)
