@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { INVOCATION, type ScriptChoice } from '../content/invocation'
 import { artworkById } from '../content/art'
 import { useApp } from '../state/appStore'
+import { KolamDivider, Torana } from '../components/Ornament'
 
 const SCRIPTS: { id: ScriptChoice; label: string; cls: string }[] = [
   { id: 'devanagari', label: 'देवनागरी', cls: 'dv' },
@@ -23,16 +24,19 @@ export function InvocationScreen({ onBegin }: { onBegin: () => void }) {
 
   return (
     <div className="relative z-10 mx-auto flex min-h-dvh max-w-2xl flex-col items-center justify-center px-6 py-12 text-center">
-      <figure className="mb-7">
-        <img
-          src={art.src}
-          alt={art.alt}
-          className="mx-auto h-56 w-auto rounded-lg border border-[var(--color-line)] object-cover shadow-[0_0_70px_-14px_rgba(200,155,74,0.5)]"
-        />
+      <figure className="mt-8 mb-7">
+        <Torana>
+          <img
+            src={art.src}
+            alt={art.alt}
+            className="mx-auto h-56 w-auto rounded-sm border border-[var(--color-brass)]/40 object-cover shadow-[0_0_70px_-14px_rgba(200,155,74,0.5)]"
+          />
+        </Torana>
       </figure>
 
       <p className="eyebrow">Before practice</p>
-      <h1 className="mt-2 mb-6 text-3xl text-[var(--color-brass)]">{art.title}</h1>
+      <h1 className="mt-2 text-3xl text-[var(--color-brass)]">{art.title}</h1>
+      <KolamDivider className="my-5 text-[var(--color-brass)] opacity-55" width={160} />
 
       <div
         className={`mb-6 flex flex-col gap-1 text-lg leading-relaxed text-balance ${

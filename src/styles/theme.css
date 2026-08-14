@@ -113,9 +113,51 @@
 
 @layer components {
   .card {
+    position: relative;
     background: linear-gradient(180deg, var(--color-ink-2), var(--color-ink));
     border: 1px solid var(--color-line);
     border-radius: var(--radius-card);
+  }
+
+  /* A thin zari thread along the top edge of every card — the gold line a
+     saree border is woven with, not a decorative gradient. */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 14px;
+    right: 14px;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-brass-dim) 22%,
+      var(--color-brass) 50%,
+      var(--color-brass-dim) 78%,
+      transparent
+    );
+    opacity: 0.55;
+  }
+
+  /* Cards that carry the full temple hem opt in. */
+  .card-hem::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 6px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0 4px,
+      color-mix(in srgb, var(--color-brass) 40%, transparent) 4px 6px,
+      transparent 6px 12px
+    );
+    mask-image: repeating-linear-gradient(
+      90deg,
+      #000 0 2px,
+      transparent 2px 4px
+    );
+    opacity: 0.5;
   }
 
   /* Eyebrow labels are set in mono — the notation book's voice. */
