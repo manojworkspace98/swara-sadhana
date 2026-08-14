@@ -6,6 +6,7 @@ import {
   toFrame,
 } from '../engine/pitchFilter'
 import type { PitchFrame } from '../engine/types'
+import { preferredDeviceId } from './inputDevices'
 
 const WORKLET_URL = `${import.meta.env.BASE_URL}worklets/pitch-forwarder.js`
 
@@ -62,12 +63,14 @@ export class MicPitchSource implements PitchSource {
     // Chrome's voice processing is tuned for speech intelligibility on calls.
     // Automatic gain control in particular rides the level of a held note and
     // smears the very steadiness we are trying to measure, so all three are off.
+    const deviceId = preferredDeviceId()
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false,
         channelCount: 1,
+        ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
       },
     })
 
@@ -141,4 +144,11 @@ export class MicPitchSource implements PitchSource {
   }
 }
 
-export const HOP_SEC = HOP / 48_000
+/**
+ * Seconds per analysis hop at this device's actual rate. iPads and Macs do not
+ * agree on 48 kHz, and a hardcoded rate would put the saved pitch trace out of
+ * step with its own audio on any device that runs at 44.1.
+ */
+export function hopSeconds(ctx: AudioContext): number {
+  return HOP / ctx.sampleRate
+}

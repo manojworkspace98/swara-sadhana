@@ -1,4 +1,5 @@
 import { getAudioContext, resumeAudio } from './audioContext'
+import { holdAt } from './swaraSynth'
 import { pluck } from '../engine/karplusStrong'
 
 /**
@@ -127,8 +128,7 @@ export class Tanpura {
     const ctx = this.ctx
     if (!this.gain || !ctx) return
     const t = ctx.currentTime
-    this.gain.gain.cancelScheduledValues(t)
-    this.gain.gain.setValueAtTime(this.gain.gain.value, t)
+    holdAt(this.gain.gain, t)
     this.gain.gain.linearRampToValueAtTime(this.volume, t + VOLUME_RAMP_SEC)
   }
 
@@ -161,8 +161,7 @@ export class Tanpura {
     const ctx = this.ctx
     if (!source || !gain || !ctx) return
     const t = ctx.currentTime
-    gain.gain.cancelScheduledValues(t)
-    gain.gain.setValueAtTime(gain.gain.value, t)
+    holdAt(gain.gain, t)
     gain.gain.linearRampToValueAtTime(0, t + fadeSec)
     source.stop(t + fadeSec + 0.02)
     source.onended = () => {

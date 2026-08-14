@@ -4,6 +4,9 @@ import { PageHeader } from '../components/PageHeader'
 import { NotationView } from '../components/NotationView'
 import { SwaraLadder } from '../components/SwaraLadder'
 import { TalaBar } from '../components/TalaBar'
+import { LivePitchCanvas } from '../components/LivePitchCanvas'
+import { NoteVerdictStrip } from '../components/NoteVerdictStrip'
+import { SCORING_PRESETS } from '../engine/scoring/pitchScore'
 import { useApp } from '../state/appStore'
 import { shrutiHz } from '../engine/shruti'
 import { RAGAS, ragaSemitones } from '../content/ragas'
@@ -148,6 +151,32 @@ export function PracticePage() {
               activeAkshara={busy ? session.akshara : -1}
               avartana={session.avartana}
             />
+          </section>
+
+          <section className="card p-4">
+            <div className="mb-2 flex items-baseline justify-between">
+              <p className="eyebrow">Live</p>
+              <p className="text-xs text-[var(--color-muted)]">
+                Stay inside the gold lane and the note counts.
+              </p>
+            </div>
+            <LivePitchCanvas
+              timeline={session.timeline}
+              latest={session.latest}
+              ragaSemitones={semitones}
+              now={session.now}
+              toleranceCents={SCORING_PRESETS[settings?.scoringPreset ?? 'beginner'].bandCents}
+              height={250}
+            />
+            <div className="mt-3">
+              <NoteVerdictStrip
+                timeline={session.timeline}
+                frames={session.frames}
+                now={session.now}
+                config={SCORING_PRESETS[settings?.scoringPreset ?? 'beginner']}
+                active={session.phase === 'singing' || session.phase === 'scoring'}
+              />
+            </div>
           </section>
 
           <section className="card overflow-hidden p-5">

@@ -53,6 +53,11 @@
   body {
     margin: 0;
     min-height: 100dvh;
+    /* A music stand gets bumped. Nothing here is a scrollable game surface, so
+       rubber-banding and double-tap zoom only get in the way mid-avartana. */
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
     background:
       radial-gradient(120% 80% at 50% -10%, #1a1f3d 0%, transparent 60%),
       var(--color-ink);

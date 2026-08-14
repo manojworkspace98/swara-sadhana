@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest'
+import {
+  DHATU_SOURCE,
+  JANTA_SOURCE,
+  KEEZHSTHAYI_SOURCE,
+  MELSTHAYI_SOURCE,
+  SARALI_SOURCE,
+} from '../sources/karnatikVarisai'
 import { validateLesson } from '../schema'
 import type { Lesson, NotationElement } from '../schema'
 import { TALAS } from '../talas'
 import {
   ALL_GENERATED_LESSONS,
-  DHATU_PATTERNS,
-  JANTA_PATTERNS,
-  KEEZHSTHAYI_PATTERNS,
-  MELSTHAYI_PATTERNS,
-  SARALI_PATTERNS,
   fitToAvartanas,
   generateAlankaraLessons,
   generateVarisaiLessons,
@@ -83,7 +85,7 @@ describe('sarali varisai', () => {
   const sarali = varisai.filter((l) => l.kind === 'sarali')
 
   it('has all fourteen, numbered in order', () => {
-    expect(SARALI_PATTERNS).toHaveLength(14)
+    expect(SARALI_SOURCE).toHaveLength(14)
     expect(sarali).toHaveLength(14)
     expect(sarali.map((l) => l.id)).toEqual(
       Array.from({ length: 14 }, (_, i) => `sarali-${i + 1}`),
@@ -120,9 +122,9 @@ describe('sarali varisai', () => {
 describe('janta varisai', () => {
   const janta = varisai.filter((l) => l.kind === 'janta')
 
-  it('has ten', () => {
-    expect(JANTA_PATTERNS).toHaveLength(10)
-    expect(janta).toHaveLength(10)
+  it('has twelve', () => {
+    expect(JANTA_SOURCE).toHaveLength(12)
+    expect(janta).toHaveLength(12)
   })
 
   it('doubles the scale in the first one', () => {
@@ -149,12 +151,12 @@ describe('janta varisai', () => {
 })
 
 describe('dhatu and sthayi varisai', () => {
-  it('has six dhatu, four melsthayi and two keezhsthayi', () => {
-    expect(DHATU_PATTERNS).toHaveLength(6)
-    expect(MELSTHAYI_PATTERNS).toHaveLength(4)
-    expect(KEEZHSTHAYI_PATTERNS).toHaveLength(2)
-    expect(varisai.filter((l) => l.kind === 'dhatu')).toHaveLength(6)
-    expect(varisai.filter((l) => l.kind === 'sthayi')).toHaveLength(6)
+  it('has three dhatu sets and five in each sthayi', () => {
+    expect(DHATU_SOURCE).toHaveLength(3)
+    expect(MELSTHAYI_SOURCE).toHaveLength(5)
+    expect(KEEZHSTHAYI_SOURCE).toHaveLength(5)
+    expect(varisai.filter((l) => l.kind === 'dhatu')).toHaveLength(3)
+    expect(varisai.filter((l) => l.kind === 'sthayi')).toHaveLength(10)
   })
 
   it('reaches above the tara Sa in the melsthayi exercises', () => {
@@ -184,14 +186,17 @@ describe('alankaras', () => {
     ])
   })
 
-  it('fits each tala exactly, with no karvai padding', () => {
+  it('fills each tala exactly', () => {
+    // The published alankaras do use karvai — the jhampa one closes each line
+    // on a held note — so the test measures aksharas rather than counting
+    // swaras and assuming one to a beat.
     for (const lesson of alankaras) {
       const tala = TALAS[lesson.talaId]
       const els = allElements(lesson)
-      expect(els.every((el) => el.duration === 1), lesson.id).toBe(true)
-      expect(els.length % tala.aksharaCount, lesson.id).toBe(0)
+      const aksharas = els.reduce((sum, el) => sum + el.duration, 0)
+      expect(aksharas % tala.aksharaCount, lesson.id).toBe(0)
       const declared = lesson.notation.reduce((sum, line) => sum + line.avartanas, 0)
-      expect(declared * tala.aksharaCount, lesson.id).toBe(els.length)
+      expect(declared * tala.aksharaCount, lesson.id).toBe(aksharas)
     }
   })
 
@@ -206,10 +211,12 @@ describe('alankaras', () => {
     }
   })
 
-  it('uses the rupaka cell of three, the classic S R G / R G M run', () => {
+  it('opens the rupaka alankara as the source prints it', () => {
+    // Published as "s r | s r g m": the drutam states the pair, the laghu
+    // answers it and carries on. Not a three-swara cell.
     const rupaka = alankaras.find((l) => l.talaId === 'rupaka')!
     const first = allElements(rupaka).slice(0, 6).map((el) => el.swara)
-    expect(first).toEqual(['S', 'R', 'G', 'R', 'G', 'M'])
+    expect(first).toEqual(['S', 'R', 'S', 'R', 'G', 'M'])
   })
 })
 
@@ -249,7 +256,7 @@ describe('the generated curriculum', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('holds forty-eight lessons across five levels', () => {
+  it('holds every published exercise across five levels', () => {
     const perLevel = new Map<number, number>()
     for (const lesson of ALL_GENERATED_LESSONS) {
       perLevel.set(lesson.level, (perLevel.get(lesson.level) ?? 0) + 1)
@@ -257,11 +264,11 @@ describe('the generated curriculum', () => {
     expect([...perLevel.entries()].sort((a, b) => a[0] - b[0])).toEqual([
       [0, 5],
       [1, 14],
-      [2, 10],
-      [3, 12],
+      [2, 12],
+      [3, 13],
       [4, 7],
     ])
-    expect(ALL_GENERATED_LESSONS).toHaveLength(48)
+    expect(ALL_GENERATED_LESSONS).toHaveLength(51)
   })
 
   it('chains each level linearly and gates the next on the whole level before it', () => {
@@ -292,28 +299,27 @@ describe('the generated curriculum', () => {
     }
   })
 
-  it('holds only the closing note, and never for a whole cycle', () => {
-    // Every exercise pattern is one swara to the akshara; the single exception
-    // is the karvai `fitToAvartanas` adds to close the cycle. A held note
-    // anywhere else means a pattern picked up a stray duration, and a karvai
-    // as long as the cycle means the pattern does not fit the tala at all.
+  it('never holds a note for a whole cycle', () => {
+    // The published lessons place karvai deliberately — sarali 5 exists in
+    // order to hold Pa, and the jhampa alankara closes each line on a held
+    // note — so a held note is not by itself a fault. A note lasting a whole
+    // avartana would be, since nothing would be left of the cycle to sing.
     for (const lesson of ALL_GENERATED_LESSONS) {
       if (lesson.kind === 'voice-basic') continue
       const tala = TALAS[lesson.talaId]
-      const els = allElements(lesson)
-      for (let i = 0; i < els.length - 1; i += 1) {
-        expect(els[i].duration, `${lesson.id} element ${i + 1}`).toBe(1)
+      for (const el of allElements(lesson)) {
+        expect(el.duration, `${lesson.id}`).toBeLessThan(tala.aksharaCount)
+        expect(el.duration, `${lesson.id}`).toBeGreaterThan(0)
       }
-      const last = els[els.length - 1]
-      expect(last.duration, `${lesson.id} closing karvai`).toBeLessThan(tala.aksharaCount)
     }
   })
 
-  it('never repeats one swara more than a janta turn would', () => {
-    // Two attacks is a janta pair. A longer run is legitimate in exactly one
-    // place — the tara Sa where an ascent ending on it meets a descent
-    // beginning on it, which is how the janta varisai are actually sung. Three
-    // attacks on any other swara is an encoding slip, not an exercise.
+  it('never repeats one swara past what a janta turn can explain', () => {
+    // The janta set includes tripled attacks ("s s s r"), and consecutive
+    // printed lines meet: an avartana closing on a tara-Sa pair followed by one
+    // opening on a tara-Sa triple reads as five once the lines are joined. That
+    // is the source, not a slip. A run past a whole anga would instead mean the
+    // parser had dropped swaras, which is what this guards against.
     for (const lesson of ALL_GENERATED_LESSONS) {
       const els = allElements(lesson)
       let run = 1
@@ -321,10 +327,7 @@ describe('the generated curriculum', () => {
         const el = els[i]
         const same = el.swara === els[i - 1].swara && el.octave === els[i - 1].octave
         run = same ? run + 1 : 1
-        const atTheTurn = lesson.kind === 'janta' && el.swara === 'S' && el.octave === 1
-        expect(run, `${lesson.id} at element ${i + 1} (${el.swara})`).toBeLessThanOrEqual(
-          atTheTurn ? 4 : 2,
-        )
+        expect(run, `${lesson.id} at element ${i + 1} (${el.swara})`).toBeLessThanOrEqual(6)
       }
     }
   })

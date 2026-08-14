@@ -147,11 +147,17 @@ export class SwaraVoice {
 }
 
 /**
- * Freeze a parameter at its value at `t` before scheduling over it.
+ * Freeze a parameter at its value at `t` before scheduling over it. Shared
+ * with the tanpura, which has the same problem on its volume.
  *
- * Firefox has never implemented `cancelAndHoldAtTime`; cancelling alone leaves
- * the parameter wherever the last completed ramp put it, which for an envelope
- * this short is within a few percent of the same thing.
+ * Reading `param.value` is not a substitute: until the audio thread has
+ * processed an automation event the getter still returns the parameter's old
+ * intrinsic value, so anchoring a ramp to it just after scheduling one can
+ * start the ramp from full scale.
+ *
+ * Firefox has never implemented `cancelAndHoldAtTime`, and there the fallback
+ * has to read the value anyway; for envelopes this short it lands within a few
+ * percent of the same place.
  */
 /** Clear the timeline and pin a known value at `t`, so what follows has a
  *  start point to ramp from. */
@@ -160,7 +166,7 @@ function anchorAt(param: AudioParam, value: number, t: number): void {
   param.setValueAtTime(value, t)
 }
 
-function holdAt(param: AudioParam, t: number): void {
+export function holdAt(param: AudioParam, t: number): void {
   if (typeof param.cancelAndHoldAtTime === 'function') {
     param.cancelAndHoldAtTime(t)
     return

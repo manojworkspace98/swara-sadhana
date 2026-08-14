@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { resumeAudio } from '../audio/audioContext'
-import { MicPitchSource } from '../audio/micCapture'
+import { getAudioContext, resumeAudio } from '../audio/audioContext'
+import { hopSeconds, MicPitchSource } from '../audio/micCapture'
 import { Metronome, type AksharaEvent } from '../audio/metronome'
 import { SwaraVoice } from '../audio/swaraSynth'
 import { Tanpura } from '../audio/tanpura'
@@ -235,7 +235,9 @@ export function usePracticeSession(opts: SessionOptions) {
     setPhase('scoring')
     metronome.current?.stop()
 
-    const take = recorder.current ? await recorder.current.stop(512 / 48_000) : null
+    const take = recorder.current
+      ? await recorder.current.stop(hopSeconds(getAudioContext()))
+      : null
     mic.current?.stop()
 
     const cfg = SCORING_PRESETS[o.preset]
@@ -273,6 +275,9 @@ export function usePracticeSession(opts: SessionOptions) {
     droneOn,
     latest,
     timeline,
+    frames,
+    /** The clock the timeline is written against, for the live view. */
+    now: () => getAudioContext().currentTime,
     listen,
     sing,
     abort,
