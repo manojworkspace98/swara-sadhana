@@ -8,6 +8,14 @@ import { addDays, dayKey } from '../state/day'
 import { fillDays, voiceDailyRange } from '../state/sessions'
 import { currentStreak, streakAtRisk } from '../state/streaks'
 import { buildPlan } from '../state/practicePlan'
+import {
+  describeGoal,
+  goalForProfile,
+  goalMet,
+  goalProgress,
+  isRestDay,
+  remainingText,
+} from '../state/goals'
 import type { PracticePlanItem, VoiceDaily } from '../state/types'
 
 const MINI_WEEKS = 8
@@ -37,14 +45,19 @@ export function TodayPage() {
   }))
 
   const todayMin = (rows?.find((r) => r.day === today)?.practiceSec ?? 0) / 60
-  const goal = activeProfile.dailyGoalMin
+  const goal = goalForProfile(activeProfile)
+  // Exercises and clean passes come from today's sessions; until those are
+  // wired through, minutes carry the day and the other rules read as zero.
+  const totals = { minutes: todayMin, exercises: 0, cleanPasses: 0 }
+  const met = goalMet(goal, totals, Date.now())
+  const resting = isRestDay(goal, Date.now())
   const streak = currentStreak(progress.streak)
-  const atRisk = streakAtRisk(progress.streak) && todayMin < goal
+  const atRisk = streakAtRisk(progress.streak) && !met
 
   // The curriculum is still being wired in; until then the plan is built from
   // whatever lesson ids progress already knows about.
   const plan = buildPlan({
-    minutes: goal,
+    minutes: goal.rules.find((r) => r.metric === 'minutes')?.target ?? 30,
     scores: progress.lessonScores,
     availableLessonIds: Object.keys(progress.lessonScores),
     warmupLessonId: null,
@@ -56,9 +69,11 @@ export function TodayPage() {
         eyebrow={greeting()}
         title={activeProfile.name}
         lead={
-          todayMin >= goal
-            ? "Today's goal is met. Anything more is a bonus."
-            : 'Warm up, work the current lesson, revisit one older one.'
+          resting
+            ? 'A rest day. Sing only if you feel like it — the streak is safe either way.'
+            : met
+              ? "Today's goal is met. Anything more is a bonus."
+              : 'Warm up, work the current lesson, revisit one older one.'
         }
       />
 
@@ -68,11 +83,11 @@ export function TodayPage() {
             <div className="mb-4 flex items-center justify-between gap-4">
               <h2 className="text-lg">Today's practice</h2>
               <span className="font-[family-name:var(--font-mono)] text-sm text-[var(--color-muted)]">
-                {Math.round(todayMin)} / {goal} min
+                {remainingText(goal, totals) ?? describeGoal(goal) + ' done'}
               </span>
             </div>
 
-            <GoalBar done={todayMin} goal={goal} />
+            <GoalBar progress={resting ? 1 : goalProgress(goal, totals)} />
 
             {plan.length === 0 ? (
               <div className="mt-5">
@@ -178,16 +193,16 @@ function PlanRow({ item }: { item: PracticePlanItem }) {
   )
 }
 
-function GoalBar({ done, goal }: { done: number; goal: number }) {
-  const pct = Math.min(100, (done / goal) * 100)
+function GoalBar({ progress }: { progress: number }) {
+  const pct = Math.min(100, progress * 100)
   return (
     <div
       className="h-2 w-full overflow-hidden rounded-full bg-[var(--color-ink-3)]"
       role="progressbar"
-      aria-valuenow={Math.round(done)}
+      aria-valuenow={Math.round(pct)}
       aria-valuemin={0}
-      aria-valuemax={goal}
-      aria-label="Practice minutes today"
+      aria-valuemax={100}
+      aria-label="Progress toward today's goal"
     >
       <div
         className="h-full rounded-full transition-[width] duration-500"

@@ -1,4 +1,5 @@
 import type { Sthayi } from '../engine/types'
+import type { DailyGoal } from './goals'
 
 export type LessonId = string
 /** Kalam — the three traditional speeds a varisai is sung at. */
@@ -21,7 +22,9 @@ export interface Profile {
   /** Sruti id, e.g. 'C#3'. */
   shruti: string
   voiceType: 'male' | 'female' | 'unset'
+  /** Kept for profiles made before goals became structured. */
   dailyGoalMin: number
+  goal?: DailyGoal
   createdAt: number
   lastUsedAt: number
 }

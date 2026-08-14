@@ -6,6 +6,7 @@ import { recordQualifyingDay } from './streaks'
 import { evaluateAchievements, type AchievementDef } from './achievements'
 import { getProgress, saveProgress } from './profiles'
 import type { ProgressStore, Session } from './types'
+import { goalMet, type DailyGoal, type DayTotals } from './goals'
 
 export interface PracticeOutcome {
   session: Session
@@ -18,7 +19,7 @@ export interface PracticeOutcome {
 
 export interface PracticeRecord {
   profileId: string
-  dailyGoalMin: number
+  goal: DailyGoal
   session: Omit<SessionInput, 'profileId'>
   /** Present when the session was a scored lesson attempt. */
   attempt?: Omit<AttemptResult, 'at'> & { lessonId: string }
@@ -41,8 +42,7 @@ export async function recordPractice(rec: PracticeRecord): Promise<PracticeOutco
   const at = rec.session.endedAt
   const day = dayKey(at)
 
-  const minutesBefore =
-    ((await db.voiceDaily.get(`${rec.profileId}|${day}`))?.practiceSec ?? 0) / 60
+  const before = await dayTotals(rec.profileId, day)
 
   const session = await saveSession({ profileId: rec.profileId, ...rec.session })
 
@@ -75,12 +75,15 @@ export async function recordPractice(rec: PracticeRecord): Promise<PracticeOutco
     rangeHighMidi: maxOrNull(progress.rangeHighMidi, rec.voice?.rangeHighMidi),
   }
 
-  // The streak turns over only on the session that crosses the goal, so a
-  // second sitting on the same day cannot count twice.
-  const minutesAfter = minutesBefore + rec.session.durationSec / 60
-  const goalMetNow = minutesBefore < rec.dailyGoalMin && minutesAfter >= rec.dailyGoalMin
+  // The streak turns over on the session that carries the day over the goal,
+  // so a second sitting cannot count the same day twice. A rest day qualifies
+  // on its own, but only once something has actually been recorded for it.
+  const after = await dayTotals(rec.profileId, day)
+  const wasMet = goalMet(rec.goal, before, at)
+  const nowMet = goalMet(rec.goal, after, at)
+  const goalMetNow = !wasMet && nowMet
   let streakEvent: PracticeOutcome['streakEvent'] = null
-  if (minutesAfter >= rec.dailyGoalMin) {
+  if (nowMet) {
     const out = recordQualifyingDay(progress.streak, day)
     progress = { ...progress, streak: out.streak }
     streakEvent = out.event
@@ -134,4 +137,24 @@ function maxOrNull(a: number | null, b: number | null | undefined): number | nul
   if (a == null) return b ?? null
   if (b == null) return a
   return Math.max(a, b)
+}
+
+
+/**
+ * What the day has amounted to so far.
+ *
+ * Minutes come from the daily rollup; exercises and clean passes are counted
+ * from the day's sessions, since a goal set in work rather than in time needs
+ * to know what was actually attempted.
+ */
+async function dayTotals(profileId: string, day: string): Promise<DayTotals> {
+  const rollup = await db.voiceDaily.get(`${profileId}|${day}`)
+  const sessions = await db.sessions.where('profileId').equals(profileId).toArray()
+  const today = sessions.filter((s) => dayKey(s.endedAt) === day)
+  const lessons = new Set(today.map((s) => s.lessonId).filter(Boolean))
+  return {
+    minutes: (rollup?.practiceSec ?? 0) / 60,
+    exercises: lessons.size,
+    cleanPasses: today.filter((s) => (s.pitchAccuracy ?? 0) >= 80).length,
+  }
 }

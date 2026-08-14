@@ -17,6 +17,7 @@ import { useWakeLock } from '../state/usePracticeTimer'
 import { recordPractice } from '../state/recordPractice'
 import { saveTake } from '../state/recordings'
 import { getProgress } from '../state/profiles'
+import { goalForProfile } from '../state/goals'
 import type { Kalam } from '../state/types'
 
 /** Aksharas per minute at each speed. Slow enough to be singable, not sluggish. */
@@ -83,7 +84,7 @@ export function PracticePage() {
     void (async () => {
       const outcome = await recordPractice({
         profileId: activeProfile.id,
-        dailyGoalMin: activeProfile.dailyGoalMin,
+        goal: goalForProfile(activeProfile),
         session: {
           lessonId: lesson.id,
           activity: 'lesson',

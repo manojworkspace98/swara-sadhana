@@ -5,6 +5,8 @@ import { SHRUTI_OPTIONS } from '../engine/shruti'
 import { deleteProfile, updateProfile } from '../state/profiles'
 import { storageEstimate } from '../state/db'
 import { DEVI_ARTWORKS } from '../content/art'
+import { GoalEditor } from '../components/GoalEditor'
+import { describeGoal, goalForProfile, type DailyGoal } from '../state/goals'
 
 export function SettingsPage() {
   const { activeProfile, profiles, signOut, refreshProfiles, patchSettings, settings } =
@@ -24,10 +26,10 @@ export function SettingsPage() {
     useApp.setState({ activeProfile: { ...activeProfile!, shruti: id } })
   }
 
-  async function changeGoal(min: number) {
-    await updateProfile(activeProfile!.id, { dailyGoalMin: min })
+  async function changeGoal(goal: DailyGoal) {
+    await updateProfile(activeProfile!.id, { goal })
     await refreshProfiles()
-    useApp.setState({ activeProfile: { ...activeProfile!, dailyGoalMin: min } })
+    useApp.setState({ activeProfile: { ...activeProfile!, goal } })
   }
 
   return (
@@ -50,7 +52,7 @@ export function SettingsPage() {
             <div>
               <p className="font-medium">{activeProfile.name}</p>
               <p className="text-sm text-[var(--color-muted)]">
-                Sa at {activeProfile.shruti} · {activeProfile.dailyGoalMin} min a day
+                Sa at {activeProfile.shruti} · {describeGoal(goalForProfile(activeProfile))} a day
               </p>
             </div>
           </div>
@@ -70,26 +72,6 @@ export function SettingsPage() {
             </select>
           </label>
 
-          <fieldset className="mb-5">
-            <legend className="eyebrow mb-2">Daily goal</legend>
-            <div className="flex flex-wrap gap-2">
-              {[10, 20, 30, 45, 60].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => changeGoal(m)}
-                  aria-pressed={m === activeProfile.dailyGoalMin}
-                  className={`min-h-11 rounded-lg border px-4 py-2 text-sm ${
-                    m === activeProfile.dailyGoalMin
-                      ? 'border-[var(--color-brass)] bg-[var(--color-ink-3)]'
-                      : 'border-[var(--color-line)]'
-                  }`}
-                >
-                  {m} min
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
           <div className="flex flex-wrap gap-3">
             <button
               onClick={signOut}
@@ -104,6 +86,14 @@ export function SettingsPage() {
               Show the invocation again
             </button>
           </div>
+        </section>
+
+        <section className="card p-6">
+          <h2 className="mb-2 text-lg">Daily goal</h2>
+          <p className="mb-4 text-sm text-[var(--color-muted)]">
+            What a day has to contain before it counts toward your streak.
+          </p>
+          <GoalEditor goal={goalForProfile(activeProfile)} onChange={changeGoal} />
         </section>
 
         <section className="card p-6">
