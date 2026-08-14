@@ -1,4 +1,5 @@
 import { createHashRouter } from 'react-router'
+import { App } from './App'
 import { AppLayout } from './AppLayout'
 import { TodayPage } from './pages/TodayPage'
 import { LearnPage } from './pages/LearnPage'
@@ -11,17 +12,23 @@ import { TunerPage } from './pages/TunerPage'
 
 export const router = createHashRouter([
   {
+    // App holds the gates: boot, profile, invocation.
     path: '/',
-    element: <AppLayout />,
+    element: <App />,
     children: [
-      { index: true, element: <TodayPage /> },
-      { path: 'learn', element: <LearnPage /> },
-      { path: 'practice/:lessonId', element: <PracticePage /> },
-      { path: 'tuner', element: <TunerPage /> },
-      { path: 'songs', element: <SongsPage /> },
-      { path: 'recordings', element: <RecordingsPage /> },
-      { path: 'progress', element: <ProgressPage /> },
-      { path: 'settings', element: <SettingsPage /> },
+      {
+        element: <AppLayout />,
+        children: [
+          { index: true, element: <TodayPage /> },
+          { path: 'learn', element: <LearnPage /> },
+          { path: 'practice/:lessonId', element: <PracticePage /> },
+          { path: 'tuner', element: <TunerPage /> },
+          { path: 'songs', element: <SongsPage /> },
+          { path: 'recordings', element: <RecordingsPage /> },
+          { path: 'progress', element: <ProgressPage /> },
+          { path: 'settings', element: <SettingsPage /> },
+        ],
+      },
     ],
   },
 ])

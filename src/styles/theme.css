@@ -62,8 +62,10 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* The Goddess watermark: present on every page, never loud enough to
-     compete with notation or the pitch canvas. */
+  /* The Goddess is present on every page, set into the empty margin at the
+     right rather than behind the reading column. Never scaled past the
+     source image's own resolution, and faint enough that notation and the
+     pitch canvas always win. */
   body::before {
     content: '';
     position: fixed;
@@ -72,11 +74,21 @@
     pointer-events: none;
     background-image: var(--devi-watermark, none);
     background-repeat: no-repeat;
-    background-position: center 20%;
-    background-size: min(680px, 85vw) auto;
-    opacity: 0.055;
-    filter: saturate(0.6);
-    mask-image: radial-gradient(circle at 50% 35%, #000 0%, transparent 72%);
+    background-position: right -60px center;
+    background-size: auto min(78vh, 460px);
+    opacity: 0.06;
+    filter: saturate(0.55);
+    /* Fades every edge, so the source JPEG's own border never reads as a box. */
+    mask-image: radial-gradient(ellipse 44% 42% at 88% 50%, #000 0%, transparent 78%);
+  }
+
+  @media (max-width: 767px) {
+    body::before {
+      background-position: center 30%;
+      background-size: auto min(46vh, 320px);
+      opacity: 0.035;
+      mask-image: radial-gradient(circle at 50% 34%, #000 0%, transparent 70%);
+    }
   }
 
   h1,
