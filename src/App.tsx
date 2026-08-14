@@ -21,6 +21,18 @@ export function App() {
     applyDeviWatermark(settings?.deviArtwork)
   }, [settings?.deviArtwork])
 
+  // Development helper for looking at the charts with data in them.
+  useEffect(() => {
+    if (!import.meta.env.DEV || !activeProfile) return
+    void import('./state/devSeed').then((m) => {
+      Object.assign(window, {
+        seedDemo: () => m.seedDemoProgress(activeProfile.id).then(() => location.reload()),
+        clearDemo: () =>
+          m.clearDemoProgress(activeProfile.id).then(() => location.reload()),
+      })
+    })
+  }, [activeProfile])
+
   if (!ready) {
     return (
       <div className="relative z-10 grid min-h-dvh place-items-center">
