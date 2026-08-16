@@ -124,6 +124,50 @@
     border-radius: var(--radius-card);
   }
 
+  /* The two buttons the teaching flows lean on. Everything is at least 44px
+     tall because the app is meant to be used on a tablet on a music stand,
+     often with the other hand keeping tala. */
+  .btn-primary,
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    align-self: flex-start;
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease,
+      color 120ms ease;
+  }
+
+  .btn-primary {
+    background: var(--color-brass);
+    color: var(--color-ink);
+    font-weight: 500;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-turmeric);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+  }
+
+  .btn-ghost {
+    border: 1px solid var(--color-line);
+    color: var(--color-jasmine);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--color-brass);
+    color: var(--color-brass);
+  }
+
   /* A thin zari thread along the top edge of every card — the gold line a
      saree border is woven with, not a decorative gradient. */
   .card::before {

@@ -48,7 +48,7 @@ function BlockView({
 
     case 'p':
       return (
-        <p className="text-[15px] leading-relaxed text-[var(--color-ink)]">
+        <p className="text-[15px] leading-relaxed text-[var(--color-jasmine)]">
           <RichText text={block.text} onOpenTerm={onOpenTerm} />
         </p>
       )
@@ -57,7 +57,7 @@ function BlockView({
       const Tag = block.ordered ? 'ol' : 'ul'
       return (
         <Tag
-          className={`flex flex-col gap-2 pl-5 text-[15px] leading-relaxed text-[var(--color-ink)] ${
+          className={`flex flex-col gap-2 pl-5 text-[15px] leading-relaxed text-[var(--color-jasmine)] ${
             block.ordered ? 'list-decimal' : 'list-disc'
           }`}
         >
@@ -97,7 +97,7 @@ function BlockView({
       return (
         <div className="rounded-md border border-[var(--color-brass)]/35 bg-[color-mix(in_srgb,var(--color-brass)_7%,transparent)] px-4 py-3">
           <p className="eyebrow mb-1 text-[var(--color-brass)]">Try this now</p>
-          <p className="text-[15px] leading-relaxed text-[var(--color-ink)]">
+          <p className="text-[15px] leading-relaxed text-[var(--color-jasmine)]">
             <RichText text={block.text} onOpenTerm={onOpenTerm} />
           </p>
           {block.demo && (

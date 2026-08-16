@@ -18,6 +18,8 @@ import { recordPractice } from '../state/recordPractice'
 import { saveTake } from '../state/recordings'
 import { getProgress } from '../state/profiles'
 import { goalForProfile } from '../state/goals'
+import { VoiceBasicGuide } from '../components/teaching/VoiceBasicGuide'
+import { updateProfile } from '../state/profiles'
 import type { Kalam } from '../state/types'
 
 /** Aksharas per minute at each speed. Slow enough to be singable, not sluggish. */
@@ -29,6 +31,12 @@ export function PracticePage() {
   const [kalam, setKalam] = useState<Kalam>(1)
   const [record, setRecord] = useState(false)
   const [saved, setSaved] = useState<string | null>(null)
+
+  async function changeShruti(id: string) {
+    if (!activeProfile) return
+    await updateProfile(activeProfile.id, { shruti: id })
+    useApp.setState({ activeProfile: { ...activeProfile, shruti: id } })
+  }
 
   const lesson = lessonId ? lessonById(lessonId) : undefined
   const raga = lesson ? RAGAS[lesson.ragaId] : undefined
@@ -130,6 +138,24 @@ export function PracticePage() {
         <Link to="/learn" className="text-[var(--color-brass)] underline underline-offset-4">
           Back to the curriculum
         </Link>
+      </>
+    )
+  }
+
+  // Level 0 lessons have no notation to sing: they teach something the player
+  // cannot express, and putting an empty score in front of a beginner was
+  // exactly the dead end that made "find your sruti" unusable.
+  if (lesson.kind === 'voice-basic') {
+    return (
+      <>
+        <PageHeader eyebrow="Level 0 · Before the exercises" title={lesson.title} lead={lesson.subtitle} />
+        <div className="max-w-2xl">
+          <VoiceBasicGuide
+            lessonId={lesson.id}
+            currentShruti={activeProfile?.shruti ?? 'C#3'}
+            onPickShruti={changeShruti}
+          />
+        </div>
       </>
     )
   }

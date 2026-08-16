@@ -295,7 +295,7 @@ function InsightCard({ insight }: { insight: Insight }) {
           {style.label}
         </span>
       </div>
-      <p className="mt-1 text-sm text-[var(--color-ink)]">{insight.title}</p>
+      <p className="mt-1 text-sm text-[var(--color-jasmine)]">{insight.title}</p>
       <p className="mt-1 text-xs leading-relaxed text-[var(--color-muted)]">{insight.detail}</p>
     </div>
   )

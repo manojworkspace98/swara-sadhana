@@ -61,7 +61,7 @@ export function TermSheet({
           </div>
           <button
             onClick={onClose}
-            className="min-h-11 min-w-11 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+            className="min-h-11 min-w-11 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-jasmine)]"
             aria-label="Close"
           >
             ✕
