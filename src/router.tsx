@@ -9,6 +9,7 @@ import { RecordingsPage } from './pages/RecordingsPage'
 import { ProgressPage } from './pages/ProgressPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TunerPage } from './pages/TunerPage'
+import { HandbookPage } from './pages/HandbookPage'
 
 export const router = createHashRouter([
   {
@@ -21,6 +22,7 @@ export const router = createHashRouter([
         children: [
           { index: true, element: <TodayPage /> },
           { path: 'learn', element: <LearnPage /> },
+          { path: 'handbook', element: <HandbookPage /> },
           { path: 'practice/:lessonId', element: <PracticePage /> },
           { path: 'tuner', element: <TunerPage /> },
           { path: 'songs', element: <SongsPage /> },

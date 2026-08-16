@@ -5,6 +5,7 @@ import { useReminders } from './state/useReminders'
  *  learn next, the pieces, the takes you kept, how far you've come. */
 const NAV = [
   { to: '/', label: 'Today', end: true },
+  { to: '/handbook', label: 'Handbook' },
   { to: '/learn', label: 'Learn' },
   { to: '/tuner', label: 'Tuner' },
   { to: '/songs', label: 'Songs' },

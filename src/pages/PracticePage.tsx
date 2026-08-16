@@ -19,6 +19,7 @@ import { saveTake } from '../state/recordings'
 import { getProgress } from '../state/profiles'
 import { goalForProfile } from '../state/goals'
 import { VoiceBasicGuide } from '../components/teaching/VoiceBasicGuide'
+import { LessonTheory } from '../components/teaching/LessonTheory'
 import { updateProfile } from '../state/profiles'
 import type { Kalam } from '../state/types'
 
@@ -27,7 +28,7 @@ const DEFAULT_BPM: Record<Kalam, number> = { 1: 60, 2: 60, 3: 60 }
 
 export function PracticePage() {
   const { lessonId } = useParams()
-  const { activeProfile, settings, setProgress } = useApp()
+  const { activeProfile, settings, setProgress, progress } = useApp()
   const [kalam, setKalam] = useState<Kalam>(1)
   const [record, setRecord] = useState(false)
   const [saved, setSaved] = useState<string | null>(null)
@@ -172,6 +173,14 @@ export function PracticePage() {
 
       <div className="grid max-w-5xl gap-6 lg:grid-cols-[1fr_300px]">
         <div className="flex flex-col gap-5">
+          <LessonTheory
+            cardIds={lesson.theoryCardIds}
+            saHz={saHz}
+            // Opened by default until the lesson has been sung once, so the
+            // first meeting with a word happens before it is needed.
+            defaultOpen={(progress?.lessonScores[lesson.id]?.attempts ?? 0) === 0}
+          />
+
           <section className="card p-5">
             <TalaBar
               tala={tala}

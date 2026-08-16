@@ -254,7 +254,7 @@ export function generateVoiceBasics(): Lesson[] {
       elements: parsePattern('S*32'),
       speeds: firstKalamOnly(),
       prerequisites: prereqs[2],
-      theoryCardIds: ['karvai', 'sruti'],
+      theoryCardIds: ['sruti', 'akara'],
     }),
     buildLesson({
       ...common,
@@ -278,7 +278,7 @@ export function generateVoiceBasics(): Lesson[] {
       elements: parsePattern('S*4 R*4 G*4 M*4 P*4 P*4 M*4 G*4 R*4 S*4'),
       speeds: firstKalamOnly(),
       prerequisites: prereqs[4],
-      theoryCardIds: ['swarasthana-mayamalavagowla', 'akara'],
+      theoryCardIds: ['akara', 'swara'],
     }),
   ]
 }
@@ -363,7 +363,7 @@ export function generateVarisaiLessons(): Lesson[] {
       speeds: threeKalams(true),
       prerequisites: saraliPrereqs[i],
       mastery: i < 3 ? MASTERY_BEGINNER : MASTERY_STANDARD,
-      theoryCardIds: ['swarasthana-mayamalavagowla', 'adi-tala', 'kalam'],
+      theoryCardIds: ['sarali', 'swara', 'mayamalavagowla', 'adi-tala', 'kalam', 'practice-how'],
     }),
   )
 
@@ -380,7 +380,7 @@ export function generateVarisaiLessons(): Lesson[] {
       speeds: threeKalams(true),
       prerequisites: jantaPrereqs[i],
       mastery: MASTERY_STANDARD,
-      theoryCardIds: ['janta-articulation', 'adi-tala', 'kalam'],
+      theoryCardIds: ['janta', 'kalam', 'practice-how'],
     }),
   )
 
@@ -399,7 +399,7 @@ export function generateVarisaiLessons(): Lesson[] {
         speeds: threeKalams(true),
         prerequisites: level3Prereqs[level3.length],
         mastery: MASTERY_STANDARD,
-        theoryCardIds: ['dhatu-leaps', 'adi-tala'],
+        theoryCardIds: ['dhatu', 'practice-how'],
       }),
     )
   })
@@ -417,7 +417,7 @@ export function generateVarisaiLessons(): Lesson[] {
         speeds: threeKalams(false),
         prerequisites: level3Prereqs[level3.length],
         mastery: MASTERY_STANDARD,
-        theoryCardIds: ['sthayi', 'adi-tala'],
+        theoryCardIds: ['sthayi-varisai', 'sthayi'],
       }),
     )
   })
@@ -435,7 +435,7 @@ export function generateVarisaiLessons(): Lesson[] {
         speeds: threeKalams(false),
         prerequisites: level3Prereqs[level3.length],
         mastery: MASTERY_STANDARD,
-        theoryCardIds: ['sthayi', 'adi-tala'],
+        theoryCardIds: ['sthayi-varisai', 'sthayi'],
       }),
     )
   })
@@ -465,7 +465,7 @@ export function generateAlankaraLessons(): Lesson[] {
       speeds: threeKalams(false),
       prerequisites: prereqs[i],
       mastery: MASTERY_STANDARD,
-      theoryCardIds: ['sapta-tala', 'anga-kriya', alankara.talaId],
+      theoryCardIds: ['alankara', 'tala-basics', 'kriya'],
     })
   })
 }
